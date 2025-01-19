@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en"></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width", initial-scale="1.0">
+    <title>Your Horoscope - SoulBuddy</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        /* Add at top of existing styles */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+
+
+.horoscope-container {
+    max-width: 1200px;
+    margin: 120px auto 20px; /* Increased top margin */
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem; /* Add gap between sections */
+}
+
+        /* Import base theme */
+        :root {
+            --primary-color: #FFD700;
+            --background-color: #000000;
+            --secondary-bg: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #FFD700;
+        }
+
+        body {
+            margin: 0;
+            font-family: Tahoma, Verdana, Segoe, sans-serif;
+            color: var(--text-color);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            background-color: var(--background-color);
+        }
+
+
+        .horoscope-container {
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--accent-color);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(10px);
+    transform: translateY(50px);
+    opacity: 0;
+    animation: slideUpFade 0.8s ease forwards;
+    position: relative; /* Add position relative */
+    width: 100%; /* Ensure full width */
+    clear: both; /* Clear any floats */
+}
+
+.section:nth-child(1) { animation-delay: 0.1s; }
+.section:nth-child(2) { animation-delay: 0.3s; }
+.section:nth-child(3) { animation-delay: 0.5s; }
+.section:nth-child(4) { animation-delay: 0.7s; }
+.section:nth-child(5) { animation-delay: 0.9s; }
+
+        @keyframes slideUpFade {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .section h3 {
+            color: var(--accent-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.8em;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .chart-section {
+    display: block !important; /* Override grid display */
+    margin: 2rem auto;
+}
+
+        .table {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--accent-color);
+            margin: 0;
+        }
+
+        .table th, .table td {
+            color: var(--text-color);
+            border-color: rgba(255, 215, 0, 0.2);
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .table td:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: scale(1.05);
+        }
+
+        .btn-download {
+            background: var(--accent-color);
+            color: black;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 2rem auto;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .btn-download:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .chart-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .horoscope-container {
+                padding: 1rem;
+                margin-top: 60px;
+            }
+        }
+
+        /* Add zodiac wheel styles */
+        .zodiac-wheel {
+            width: 400px;
+            height: 400px;
+            margin: 0 auto;
+            position: relative;
+            animation: rotateWheel 60s linear infinite;
+        }
+
+        .wheel-container {
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .house {
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: var(--accent-color);
+            top: 50%;
+            left: 50%;
+            transform-origin: left;
+        }
+
+        .house-content {
+            position: absolute;
+            left: 80%;
+            top: -20px;
+            color: var(--accent-color);
+            font-size: 0.8em;
+        }
+
+        /* Panchang grid */
+        .panchang-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 1rem 0;
+}
+
+        .panchang-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .panchang-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+        }
+
+        /* Planet cards */
+        .planets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin: 1rem 0;
+}
+
+        .planet-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--accent-color);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .planet-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+        }
+
+        /* Dasha timeline */
+        .dasha-timeline {
+    position: relative;
+    padding: 2rem 0;
+    margin: 1rem 0;
+}
+
+        .dasha-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 2rem;
+        }
+
+        .dasha-dot {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 15px;
+            height: 15px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+
+        .dasha-dot::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 15px;
+            width: 2px;
+            height: calc(100% + 2rem);
+            background: var(--accent-color);
+            transform: translateX(-50%);
+        }
+
+        /* Animations */
+        @keyframes rotateWheel {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .planet-card, .panchang-item {
+            animation: fadeInScale 0.5s ease forwards;
+        }
+
+        .planet-card:nth-child(n) {
+            animation-delay: calc(0.1s * var(--i));
+        }
+
+        /* Add these specific styles */
+
+
+       
+
+       
+
+        .rashi-table-container {
+    max-width: 600px;  /* Reduced from 800px */
+    margin: 20px auto;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    border: 1px solid var(--accent-color);
+}
+
+.rashi-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 5px;  /* Reduced from 8px */
+    background: transparent;
+    table-layout: fixed; /* Fixed layout */
+}
+
+.rashi-table td {
+    width: 33.33%;
+    padding: 0;
+    vertical-align: middle;
+}
+
+.house {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--accent-color);  /* Reduced border width */
+    padding: 10px;  /* Reduced padding */
+    height: 80px;   /* Reduced height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    margin: 0; /* Remove margin */
+}
+
+.birth-chart {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid var(--accent-color);
+    height: 80px;   /* Match house height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1em;  /* Reduced font size */
+    color: var(--accent-color);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    margin: 0; /* Remove margin */
+}
+
+.house-title {
+    font-size: 0.8em;  /* Reduced font size */
+    margin-bottom: 3px;
+}
+
+.house-sign {
+    font-size: 0.7em;  /* Reduced font size */
+    margin-bottom: 3px;
+}
+
+.house-planets {
+    font-size: 0.7em;  /* Reduced font size */
+}
+
+/* Update mobile styles */
+@media (max-width: 768px) {
+    .rashi-table-container {
+        padding: 8px;
+        margin: 10px auto;
+    }
+    
+    .rashi-table {
+        border-spacing: 3px;
+    }
+    
+    .house, .birth-chart {
+        height: 70px;
+        padding: 8px;
+    }
+    
+    .house-title {
+        font-size: 0.7em;
+    }
+}
+        .rashi-chart-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 20px;
+  color: #ffd700; /* Gold-like color */
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+.rashi-chart-item {
+  border: 1px solid yellow;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+.rashi-chart-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rashi-chart-item:hover {
+  overflow: visible;
+  white-space: normal;
+}
+
+/* Add to existing styles */
+.lucky-number-section {
+    text-align: center;
+}
+
+.lucky-number-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.lucky-number-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--accent-color), #FFA500);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    animation: pulseGlow 2s infinite;
+}
+
+.lucky-number-circle .number {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--background-color);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.lucky-number-significance {
+    max-width: 600px;
+    margin: 0 auto;
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); }
+    50% { transform: scale(1.05); box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); }
+    100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); }
+}
+    </style>
+
+</head>
+<body>
+    <!-- Video Background -->
+    <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="myhoroscopevideo.mp4" type="video/mp4">
+        </video>
+    </div>
+    <div class="overlay"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-navbar">
+        <div class="container-fluid px-4">
+            <div class="brand-text">SoulBuddy</div>
+            
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+    
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> 
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="form.html">
+                            <i class="fas fa-star"></i> 
+                            <span>Know Me</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="myhoroscope.html">
+                            <i class="fas fa-chart-pie"></i> 
+                            <span>My Horoscope</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="mantra.html">
+                            <i class="fas fa-om"></i> 
+                            <span>Mantra</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dosha.html">
+                            <i class="fas fa-balance-scale"></i> 
+                            <span>Dosha</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="myrituals.html">
+                            <i class="fas fa-pray"></i> 
+                            <span>Pooja Rituals</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="blog.html">
+                            <i class="fas fa-blog"></i> 
+                            <span>Blog</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <link href="navbar.css" rel="stylesheet">
+    <!-- Brand Text -->
+    <div class="brand-text">Made by SoulBuddy - Where Astrology Meets Soul</div>
+
+    <!-- Main Content -->
+    <div class="horoscope-container" id="horoscopeContent">
+        <!-- Content will be populated by JavaScript -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const horoscopeData = JSON.parse(localStorage.getItem('horoscopeData'));
+        const rashiChart = horoscopeData.rashiChart;
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const userData = localStorage.getItem('userDetails');
+                const horoscopeData = localStorage.getItem('horoscopeData');
+
+                if (!userData || !horoscopeData) {
+                    window.location.href = 'form.html';
+                    return;
+                }
+
+                const user = JSON.parse(userData);
+                const horoscope = JSON.parse(horoscopeData);
+
+                // Add this function to parse rashi data
+                const parseRashiData = (rashiChartData) => {
+                    return rashiChartData.map(house => {
+                        // Extract sign and planets using regex
+                        const signMatch = house.match(/\*\*House \d+.*?: ([^*]+)\*\*/);
+                        const planetsMatch = house.match(/- (.+)$/);
+                        
+                        return {
+                            sign: signMatch ? signMatch[1] : 'Unknown',
+                            planets: planetsMatch && planetsMatch[1] !== 'No planets present' 
+                                ? planetsMatch[1].split(', ')
+                                : []
+                        };
+                    });
+                };
+
+                // Update createRashiTable function
+                const createRashiTable = (rashiData) => {
+                    const parsedData = parseRashiData(rashiData);
+                    const houseOrder = [11, 0, 1, 10, 'center', 2, 9, 8, 3, 7, 6, 4];
+                    
+                    let tableHTML = `
+                        <div class="rashi-table-container">
+                            <table class="rashi-table">
+                                <tbody>`;
+                    
+                    for(let i = 0; i < 4; i++) {
+                        tableHTML += '<tr>';
+                        for(let j = 0; j < 3; j++) {
+                            const index = i * 3 + j;
+                            const houseIndex = houseOrder[index];
+                            
+                            if(houseIndex === 'center') {
+                                tableHTML += '<td><div class="birth-chart">Birth Chart</div></td>';
+                                continue;
+                            }
+                            
+
+const house = parsedData[houseIndex];
+tableHTML += `
+    <td style="border: 1px solid yellow; padding: 10px; margin: 5px; text-align: center; background-color: rgba(0, 0, 0, 0.8); color: #ffd700; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);">
+        <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">House ${houseIndex === 0 ? 1 : houseIndex + 1}</div>
+        <div style="font-size: 14px; margin-bottom: 5px;">${house.sign}</div>
+        <div style="font-size: 12px;">${house.planets.length ? house.planets.join(', ') : 'No planets'}</div>
+    </td>`;
+                        }
+                        tableHTML += '</tr>';
+                    }
+                    
+                    tableHTML += `
+                                </tbody>
+                            </table>
+                        </div>`;
+                    
+                    return tableHTML;
+                };
+
+                // Add default dashas if not present
+                if (!horoscope.dashas) {
+                    horoscope.dashas = {
+                        maha: "Information not available",
+                        antar: "Information not available",
+                        pratyantar: "Information not available"
+                    };
+                }
+
+                document.getElementById('horoscopeContent').innerHTML = `
+                    <div class="section user-info-section">
+                        <h3><i class="fas fa-user"></i> Personal Details</h3>
+                        <div class="info-content">
+                            <p><strong>Name:</strong> ${user.name}</p>
+                            <p><strong>Date of Birth:</strong> ${user.dob}</p>
+                            <p><strong>Time of Birth:</strong> ${user.birthTime}</p>
+                            <p><strong>Place of Birth:</strong> ${user.birthCity}, ${user.birthState}</p>
+                        </div>
+                    </div>
+
+                    <div class="section panchang-section">
+                        <h3><i class="fas fa-moon"></i> Panchang Details</h3>
+                        <div class="panchang-grid">
+                            <div class="panchang-item">
+                                <i class="fas fa-sun"></i>
+                                <h4>Tithi</h4>
+                                <p>${horoscope.panchang.tithi}</p>
+                            </div>
+                            <div class="panchang-item">
+                                <i class="fas fa-star"></i>
+                                <h4>Nakshatra</h4>
+                                <p>${horoscope.panchang.nakshatra}</p>
+                            </div>
+                            <div class="panchang-item">
+                                <i class="fas fa-dharmachakra"></i>
+                                <h4>Yoga</h4>
+                                <p>${horoscope.panchang.yoga}</p>
+                            </div>
+                            <div class="panchang-item">
+                                <i class="fas fa-om"></i>
+                                <h4>Karana</h4>
+                                <p>${horoscope.panchang.karana}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add this section after panchang-section -->
+                    <div class="section lucky-number-section">
+                        <h3><i class="fas fa-dice"></i> Your Lucky Number</h3>
+                        <div class="lucky-number-container">
+                            <div class="lucky-number-circle">
+                                <span class="number">${horoscope.luckyNumber.number}</span>
+                            </div>
+                            <div class="lucky-number-significance">
+                                <p>${horoscope.luckyNumber.significance}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section chart-section">
+                        <h3><i class="fas fa-chart-pie"></i> Rashi Chart</h3>
+                        ${createRashiTable(horoscope.rashiChart)}
+                    </div>
+
+                    <div class="section planets-section">
+                        <h3><i class="fas fa-globe"></i> Planetary Positions</h3>
+                        <div class="planets-grid">
+                            ${horoscope.planetaryPositions.map(planet => `
+                                <div class="planet-card">
+                                    <div class="planet-icon">
+                                        <i class="fas fa-${getPlanetIcon(planet.name)}"></i>
+                                    </div>
+                                    <h4>${planet.name}</h4>
+                                    <p>${planet.sign} (${planet.degree}°)</p>
+                                    <p>House ${planet.house}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="section dasha-section">
+                        <h3><i class="fas fa-clock"></i> Current Dashas</h3>
+                        <div class="dasha-timeline">
+                            <div class="dasha-item">
+                                <div class="dasha-dot"></div>
+                                <h4>Maha Dasha</h4>
+                                <p>${horoscope.dashas?.maha || 'Information not available'}</p>
+                            </div>
+                            <div class="dasha-item">
+                                <div class="dasha-dot"></div>
+                                <h4>Antar Dasha</h4>
+                                <p>${horoscope.dashas?.antar || 'Information not available'}</p>
+                            </div>
+                            <div class="dasha-item">
+                                <div class="dasha-dot"></div>
+                                <h4>Pratyantar Dasha</h4>
+                                <p>${horoscope.dashas?.pratyantar || 'Information not available'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="downloadPDF()" class="btn-download">
+                        <i class="fas fa-download"></i> Download Horoscope
+                    </button>
+                `;
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error displaying horoscope. Please try again.');
+            }
+        });
+
+        function getPlanetIcon(planetName) {
+            const icons = {
+                'Sun': 'sun',
+                'Moon': 'moon',
+                'Mars': 'fire',
+                'Mercury': 'mercury',
+                'Jupiter': 'star',
+                'Venus': 'heart',
+                'Saturn': 'ring',
+                'Rahu': 'dragon',
+                'Ketu': 'meteor'
+            };
+            return icons[planetName] || 'planet';
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('horoscopeContent');
+            const opt = {
+                margin: 1,
+                filename: 'your_horoscope.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+    <!-- Add Google Translate script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+        }
+    </script>
+
+</body>
+</html>

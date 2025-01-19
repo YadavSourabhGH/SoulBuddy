@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details - SoulBuddy</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #FFD700;
+            --background-color: #000000;
+            --secondary-bg: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #FFD700;
+        }
+
+        body {
+            margin: 0;
+            font-family: Tahoma, Verdana, Segoe, sans-serif;
+            color: var(--text-color);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: -1;
+        }
+
+        .content-wrapper {
+            min-height: 100vh;
+            padding: 76px 1rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .custom-navbar {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--accent-color);
+            padding: 1.2rem 1rem;
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--accent-color) !important;
+            transition: all 0.3s ease;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            border: 1px solid var(--accent-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-title {
+            color: var(--accent-color);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--accent-color);
+            color: var(--text-color);
+            padding: 0.75rem;
+            border-radius: 10px;
+        }
+
+        .form-control:focus {
+            background: rgba(0,0,0,0.7);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(255,215,0,0.25);
+            color: var(--text-color);
+        }
+
+        .btn-submit {
+            background: var(--accent-color);
+            color: black;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 25px;
+            width: 100%;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .split-container {
+                flex-direction: column;
+            }
+            .video-section {
+                height: 30vh;
+            }
+            .form-section {
+                height: auto;
+            }
+        }
+
+        /* Add to existing styles */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loader {
+            width: 100px;
+            height: 100px;
+            border: 5px solid transparent;
+            border-top: 5px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: var(--accent-color);
+            margin-top: 20px;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <!-- Add to head section -->
+<script>
+// Add database connection status check
+async function checkDatabaseConnection() {
+    try {
+        const response = await fetch(`${ASTRA_DB_ENDPOINT}/api/rest/v2/schemas/keyspaces`, {
+            headers: {
+                'X-Cassandra-Token': ASTRA_DB_TOKEN
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Database connection failed');
+        }
+        
+        console.log('Successfully connected to Astra DB');
+    } catch (error) {
+        console.error('Database connection error:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', checkDatabaseConnection);
+</script>
+</head>
+<body>
+    <!-- Add after body opening tag -->
+<div class="loading-overlay">
+    <div class="loader"></div>
+    <div class="loading-text">Generating Your Horoscope...</div>
+</div>
+
+    <!-- Navbar -->
+   <!-- Common navbar for all pages -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-navbar">
+    <div class="container-fluid px-4">
+        <div class="brand-text">SoulBuddy</div>
+        
+        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">
+                        <i class="fas fa-home"></i> 
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="form.html">
+                        <i class="fas fa-star"></i> 
+                        <span>Know Me</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="myhoroscope.html">
+                        <i class="fas fa-chart-pie"></i> 
+                        <span>My Horoscope</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="mantra.html">
+                        <i class="fas fa-om"></i> 
+                        <span>Mantra</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="dosha.html">
+                        <i class="fas fa-balance-scale"></i> 
+                        <span>Dosha</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="myrituals.html">
+                        <i class="fas fa-pray"></i> 
+                        <span>Pooja Rituals</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="blog.html">
+                        <i class="fas fa-blog"></i> 
+                        <span>Blog</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<link href="navbar.css" rel="stylesheet">
+
+<!-- Add content wrapper -->
+
+    <!-- Your page content here -->
+</div>
+
+    <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="199580-910653705_large.mp4" type="video/mp4">
+        </video>
+    </div>
+    
+    <div class="overlay"></div>
+    
+    <div class="content-wrapper">
+        <div class="form-container">
+            <h2 class="form-title">Personal Details</h2>
+            <form id="userDetailsForm">
+                <div class="form-group">
+                    <label class="form-label">Tell us your name</label>
+                    <input type="text" class="form-control" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" name="dob" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Time of Birth</label>
+                    <input type="time" class="form-control" name="birthTime">
+                    <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" id="unknownTime">
+                        <label class="form-check-label" for="unknownTime">I don't know my time of birth</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">State of Birth</label>
+                    <select class="form-control" name="birthState" required>
+                        <!-- Add all states -->
+                        <option value="">Select State</option>
+                        <option value="MH">Maharashtra</option>
+                        <!-- Add other states -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">City of Birth</label>
+                    <select class="form-control" name="birthCity" required>
+                        <option value="">Select City</option>
+                        <!-- Cities will be populated based on state -->
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent`;
+const GEMINI_API_KEY = `AIzaSyAVNCw8ARQdDupoqYy1dY_-JpIKPi_CBN0`;
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('userDetailsForm');
+    const stateSelect = form.querySelector('select[name="birthState"]');
+    const citySelect = form.querySelector('select[name="birthCity"]');
+
+    // Load and parse CSV data
+    async function loadLocationData() {
+        try {
+            // Check localStorage cache first
+            const cachedData = localStorage.getItem('locationData');
+            if (cachedData) {
+                return JSON.parse(cachedData);
+            }
+
+            // Load states
+            const statesResponse = await fetch('states.csv');
+            const statesText = await statesResponse.text();
+            const statesRows = statesText.split('\n').slice(1); // Skip header
+
+            // Load cities
+            const citiesResponse = await fetch('cities.csv');
+            const citiesText = await citiesResponse.text();
+            const citiesRows = citiesText.split('\n').slice(1); // Skip header
+
+            // Parse Indian states
+            const states = statesRows
+                .filter(row => row.includes(',IN,')) // Filter Indian states
+                .map(row => {
+                    const [id, name, , code] = row.split(',');
+                    return { id, name, code };
+                });
+
+            // Parse Indian cities
+            const cities = {};
+            citiesRows
+                .filter(row => row.includes(',IN,')) // Filter Indian cities
+                .forEach(row => {
+                    const [id, name, stateId] = row.split(',');
+                    if (!cities[stateId]) {
+                        cities[stateId] = [];
+                    }
+                    cities[stateId].push({ id, name });
+                });
+
+            const locationData = { states, cities };
+            
+            // Cache in localStorage
+            localStorage.setItem('locationData', JSON.stringify(locationData));
+            
+            return locationData;
+        } catch (error) {
+            console.error('Error loading location data:', error);
+            return { states: [], cities: {} };
+        }
+    }
+
+    // Create searchable dropdown
+    function createSearchableDropdown(element, options, placeholder) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'dropdown-wrapper';
+        wrapper.style.position = 'relative';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control';
+        input.placeholder = `Search ${placeholder}...`;
+        input.autocomplete = 'off'; // Prevent browser autocomplete
+
+        const dropdown = document.createElement('div');
+        dropdown.className = 'dropdown-list';
+        dropdown.style.cssText = `
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid var(--accent-color);
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+        `;
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(dropdown);
+        element.parentNode.replaceChild(wrapper, element);
+
+        // Show dropdown on focus
+        input.addEventListener('focus', () => {
+            dropdown.style.display = 'block';
+        });
+
+        return { input, dropdown, wrapper };
+    }
+
+    async function initializeDropdowns() {
+        const locationData = await loadLocationData();
+        let selectedStateId = null;
+        
+        // State dropdown
+        const { input: stateInput, dropdown: stateDropdown } = createSearchableDropdown(
+            stateSelect, 
+            locationData.states,
+            'state'
+        );
+
+        // City dropdown
+        const { input: cityInput, dropdown: cityDropdown } = createSearchableDropdown(
+            citySelect,
+            [],
+            'city'
+        );
+        cityInput.disabled = true;
+
+        // State search and selection
+        stateInput.addEventListener('input', debounce(function() {
+            const searchTerm = this.value.toLowerCase();
+            const filtered = locationData.states.filter(state => 
+                state.name.toLowerCase().includes(searchTerm)
+            ).slice(0, 10);
+            
+            updateDropdown(stateDropdown, filtered, (state) => {
+                stateInput.value = state.name;
+                selectedStateId = state.id;
+                cityInput.disabled = false;
+                cityInput.value = '';
+                // Enable city search with new state's cities
+                const stateCities = locationData.cities[selectedStateId] || [];
+                updateDropdown(cityDropdown, stateCities, (city) => {
+                    cityInput.value = city.name;
+                    cityDropdown.style.display = 'none';
+                });
+                stateDropdown.style.display = 'none';
+            });
+        }, 300));
+
+        // City search and selection
+        cityInput.addEventListener('input', debounce(function() {
+            if (!selectedStateId) return;
+            
+            const searchTerm = this.value.toLowerCase();
+            const stateCities = locationData.cities[selectedStateId] || [];
+            const filtered = stateCities.filter(city => 
+                city.name.toLowerCase().includes(searchTerm)
+            ).slice(0, 10);
+            
+            updateDropdown(cityDropdown, filtered, (city) => {
+                cityInput.value = city.name;
+                cityDropdown.style.display = 'none';
+            });
+        }, 300));
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown-wrapper')) {
+                stateDropdown.style.display = 'none';
+                cityDropdown.style.display = 'none';
+            }
+        });
+    }
+
+    // Initialize
+    initializeDropdowns();
+
+    // Utility function for debouncing
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // Update dropdown content
+    function updateDropdown(dropdown, items, onSelect) {
+        dropdown.innerHTML = '';
+        dropdown.style.display = items.length ? 'block' : 'none';
+
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'dropdown-item';
+            div.textContent = item.name;
+            div.style.cssText = `
+                padding: 8px 16px;
+                cursor: pointer;
+                color: var(--text-color);
+                transition: background 0.3s;
+            `;
+            
+            div.addEventListener('mouseover', () => {
+                div.style.background = 'rgba(255,215,0,0.1)';
+            });
+            div.addEventListener('mouseout', () => {
+                div.style.background = 'transparent';
+            });
+            
+            div.addEventListener('click', () => onSelect(item));
+            
+            dropdown.appendChild(div);
+        });
+    }
+
+    // Form submission handler
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const loadingOverlay = document.querySelector('.loading-overlay');
+        
+        try {
+            loadingOverlay.style.display = 'flex';
+            
+            // Get form elements
+            const nameInput = form.querySelector('input[name="name"]');
+            const dobInput = form.querySelector('input[name="dob"]');
+            const timeInput = form.querySelector('input[name="birthTime"]');
+            const unknownTimeCheckbox = document.getElementById('unknownTime');
+            const stateInput = document.querySelector('input[placeholder="Search state..."]');
+            const cityInput = document.querySelector('input[placeholder="Search city..."]');
+
+            // Validate inputs
+            if (!nameInput.value || !dobInput.value || !stateInput.value || !cityInput.value) {
+                throw new Error('Please fill all required fields');
+            }
+
+            // Create form data object
+            const formData = {
+                name: nameInput.value,
+                dob: dobInput.value,
+                birthTime: unknownTimeCheckbox.checked ? 'unknown' : timeInput.value,
+                birthState: stateInput.value,
+                birthCity: cityInput.value
+            };
+
+            // Save to Astra DB
+            await saveToAstraDB(formData);
+            
+            // Store user details
+            localStorage.setItem('userDetails', JSON.stringify(formData));
+
+            // Create prompt string
+            const prompt = `Generate a detailed Vedic astrology horoscope analysis in JSON format for:
+Name: ${formData.name}
+DOB: ${formData.dob}
+Time: ${formData.birthTime}
+Place: ${formData.birthCity}, ${formData.birthState}
+
+Required JSON structure:
+{
+    "panchang": {
+        "tithi": "Specific tithi name and detailed description",
+        "nakshatra": "Specific nakshatra name and significance",
+        "yoga": "Specific yoga type and detailed meaning",
+        "karana": "Specific karana name and influence",
+        "day": "Day lord and significance"
+    },
+    "rashiChart": [
+        "**House 1 (Ascendant): [Zodiac Sign]** - [Planets if any]",
+        "**House 2 (Wealth): [Zodiac Sign]** - [Planets if any]"
+    ],
+    "planetaryPositions": [
+        {
+            "name": "Sun/Moon/Mars/etc",
+            "sign": "Current zodiac sign",
+            "degree": "Specific degree",
+            "house": "House number",
+            "significance": "Detailed interpretation"
+        }
+    ],
+    "luckyNumber": {
+        "number": "Single digit between 1-9",
+        "significance": "Detailed numerological significance"
+        }
+}
+    
+
+Important requirements:
+!important - Always Provide only json format start with { and end with } and sont add `+"```"+`json and`+ "``` "+` at end please - !important
+!important dont add any extra text or any other data - !important
+1. Always provide actual zodiac signs for each house
+2. Use proper astrological terminology
+3. Never return "unknown" or "no data"
+4. Ensure JSON is properly formatted
+5. Include all planets: Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu
+6. Provide specific degrees for planetary positions
+7. Use "No planets present" instead of empty planet lists`;
+
+            // Rest of your API call code...
+            const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 2048,
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate horoscope');
+            }
+
+            const data = await response.json();
+            
+            // Improved JSON parsing
+            let horoscopeData = null;
+            try {
+                const jsonText = data.candidates[0].content.parts[0].text
+                    .replace(/```json\s*|\s*```/g, '')
+                    .trim();
+                horoscopeData = JSON.parse(jsonText);
+                
+                // Validate required fields
+                if (!horoscopeData.panchang || !horoscopeData.rashiChart || !horoscopeData.planetaryPositions) {
+                    throw new Error('Invalid horoscope data structure');
+                }
+                
+                // Store and redirect
+                localStorage.setItem('horoscopeData', JSON.stringify(horoscopeData));
+                window.location.href = 'myhoroscope.html';
+            } catch (error) {
+                console.error('JSON parsing error:', error);
+                throw new Error('Invalid horoscope data received');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Error generating horoscope. Please try again.');
+        } finally {
+            loadingOverlay.style.display = 'none';
+        }
+    });
+});
+
+const ASTRA_DB_ENDPOINT = "https://7f755b1c-4859-410a-9bce-d777badac79d-us-east-2.apps.astra.datastax.com";
+const ASTRA_DB_TOKEN = "AstraCS:SKCTZkmDmRzbFYpfqFvsAeGj:7f9ad7f050b100f9b2587896850e5351a4ba8cd53a41d68d0d243f566cd6e2ab";
+
+async function saveToAstraDB(userData) {
+    try {
+        const response = await fetch(`${ASTRA_DB_ENDPOINT}/api/rest/v2/namespaces/soulbuddy/collections/userdata`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Cassandra-Token': ASTRA_DB_TOKEN
+            },
+            body: JSON.stringify({
+                userId: userData.name + '_' + Date.now(), // Create unique ID
+                name: userData.name,
+                dob: userData.dob,
+                birthTime: userData.birthTime,
+                birthState: userData.birthState,
+                birthCity: userData.birthCity,
+                createdAt: new Date().toISOString()
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save to database');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Database Error:', error);
+        throw error;
+    }
+}
+
+// Update form submission handler
+form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const loadingOverlay = document.querySelector('.loading-overlay');
+    
+    try {
+        loadingOverlay.style.display = 'flex';
+        
+        // ... existing form data collection ...
+
+        // Save to Astra DB
+        await saveToAstraDB(formData);
+        
+        // Store in localStorage as backup
+        localStorage.setItem('userDetails', JSON.stringify(formData));
+
+        // ... rest of your horoscope generation code ...
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Error processing your request. Please try again.');
+    } finally {
+        loadingOverlay.style.display = 'none';
+    }
+});
+</script>
+</body>
+</html>
