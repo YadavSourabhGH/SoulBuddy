@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulSong: Personalized Mantra Generator</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #FFD700;
+            --background-color: #000000;
+            --secondary-bg: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #FFD700;
+        }
+
+        body {
+            margin: 0;
+            font-family: Tahoma, Verdana, Segoe, sans-serif;
+            color: var(--text-color);
+            min-height: 100vh;
+            background: transparent;
+        }
+
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+        .custom-navbar {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--accent-color);
+            padding: 1.2rem 1rem;
+            z-index: 1001;
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--accent-color) !important;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-nav .nav-link:hover {
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px var(--accent-color);
+        }
+
+        main {
+            margin: 120px auto 40px;  /* Increased top margin */
+            padding: 40px;  /* Increased padding */
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--accent-color);
+            animation: fadeIn 0.5s ease-out;
+            min-height: calc(100vh - 240px);  /* Adjust for better vertical centering */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                margin: 100px 20px 30px;
+                padding: 30px;
+            }
+        }
+
+        h1, h2 {
+            color: var(--accent-color);
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        label {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFD700' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            padding-right: 2.5rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            border-color: var(--accent-color);
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent-color);
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .output {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+            animation: glowPulse 2s infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 5px var(--accent-color); }
+            50% { box-shadow: 0 0 20px var(--accent-color); }
+            100% { box-shadow: 0 0 5px var(--accent-color); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Video Background -->
+    <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="myhoroscopevideo.mp4" type="video/mp4">
+        </video>
+    </div>
+    <div class="overlay"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-navbar">
+        <div class="container-fluid px-4">
+            <div class="brand-text">SoulBuddy</div>
+            
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+    
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> 
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="form.html">
+                            <i class="fas fa-star"></i> 
+                            <span>Know Me</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="myhoroscope.html">
+                            <i class="fas fa-chart-pie"></i> 
+                            <span>My Horoscope</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="mantra.html">
+                            <i class="fas fa-om"></i> 
+                            <span>Mantra</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dosha.html">
+                            <i class="fas fa-balance-scale"></i> 
+                            <span>Dosha</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="myrituals.html">
+                            <i class="fas fa-pray"></i> 
+                            <span>Pooja Rituals</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="blog.html">
+                            <i class="fas fa-blog"></i> 
+                            <span>Blog</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <link href="navbar.css" rel="stylesheet">
+
+    <main>
+        <h2>Create Your Soul Mantra</h2>
+        <form id="mantraForm">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name" required>
+
+            <label for="dob">Date of Birth:</label>
+            <input type="date" id="dob" name="dob" required>
+
+            <label for="intention">Desired Outcome:</label>
+            <select id="intention" name="intention">
+                <option value="career">Career and Finances</option>
+                <option value="love">Love and Relationships</option>
+                <option value="health">Health and Wellness</option>
+                <option value="family">Family and Home</option>
+                <option value="growth">Personal Growth and Spirituality</option>
+                <option value="travel">Travel and Adventure</option>
+                <option value="education">Education and Learning</option>
+                <option value="luck">Luck and Fortune</option>
+                <option value="social">Friendships and Social Life</option>
+                <option value="compatibility">Astrological Compatibility</option>
+            </select>
+
+            <button type="submit">Generate Mantra</button>
+        </form>
+
+        <div id="output" class="output" style="display: none;">
+            <p><strong>Your Personalized Mantra:</strong></p>
+            <p id="mantraText"></p>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // JavaScript Code
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+        const GEMINI_API_KEY = ``;
+
+        // Add cache object
+        const mantraCache = {};
+
+        async function generateMantraWithGemini(numbers, intention, name, dob) {
+            // Create cache key
+            const cacheKey = `${name}-${dob}-${intention}`;
+            
+            // Check cache
+            if (mantraCache[cacheKey]) {
+                return mantraCache[cacheKey];
+            }
+
+            const prompt = `Generate a spiritual Sanskrit mantra for:
+            Name: ${name}
+            Birth Date: ${dob}
+            Numerology Numbers: ${numbers.join(', ')}
+            Purpose: ${intention}
+
+            Requirements:
+            1. Use authentic Sanskrit words
+            2. Keep it 3-4 words long
+            3. Make it rhythmic and easy to chant
+            4. Include positive vibrations
+            5. Relate to the specific intention
+
+            Format: Return only the mantra text in UPPERCASE.`;
+
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.3,
+                            topK: 32,
+                            topP: 0.8,
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                const mantra = data.candidates[0].content.parts[0].text.trim();
+                
+                // Cache the result
+                mantraCache[cacheKey] = mantra;
+                
+                return mantra;
+            } catch (error) {
+                console.error('Error:', error);
+                return fallbackMantra(numbers, intention);
+            }
+        }
+
+        function calculateNumerology(name, dob) {
+            const nameValue = name
+                .toUpperCase()
+                .split('')
+                .map(char => (char.charCodeAt(0) - 64) % 9 || 9) // A=1, B=2, ..., Z=26, reduce to single digit
+                .reduce((sum, num) => sum + num, 0);
+
+            const birthNumber = dob.split('-')
+                .reduce((sum, part) => sum + [...part].reduce((s, n) => s + parseInt(n), 0), 0);
+
+            const lifePath = reduceToSingleDigit(birthNumber);
+            return { nameValue: reduceToSingleDigit(nameValue), lifePath };
+        }
+
+        function reduceToSingleDigit(num) {
+            while (num > 9) {
+                num = [...num.toString()].reduce((sum, digit) => sum + parseInt(digit), 0);
+            }
+            return num;
+        }
+
+        const soundMap = {
+            1: 'OM',
+            2: 'AH',
+            3: 'RAM',
+            4: 'SHAM',
+            5: 'VAM',
+            6: 'LAM',
+            7: 'YAM',
+            8: 'HAM',
+            9: 'AUM'
+        };
+
+        function generateMantra(numbers, intention) {
+            const baseSounds = numbers.map(num => soundMap[num]);
+            let intentionSuffix = '';
+            switch (intention) {
+                case 'peace': intentionSuffix = 'SHANTI'; break;
+                case 'confidence': intentionSuffix = 'NAMAH'; break;
+                case 'focus': intentionSuffix = 'SOHAM'; break;
+                case 'energy': intentionSuffix = 'JAYA'; break;
+            }
+            return `${baseSounds.join(' ')} ${intentionSuffix}`;
+        }
+
+        function playMantra(mantra) {
+            const speech = new SpeechSynthesisUtterance(mantra);
+            speech.lang = 'en-US';
+            window.speechSynthesis.speak(speech);
+        }
+
+        document.getElementById('mantraForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const dob = document.getElementById('dob').value;
+            const intention = document.getElementById('intention').value;
+
+            const { nameValue, lifePath } = calculateNumerology(name, dob);
+            const mantra = await generateMantraWithGemini([nameValue, lifePath], intention, name, dob);
+
+            const outputDiv = document.getElementById('output');
+            document.getElementById('mantraText').textContent = mantra;
+            outputDiv.style.display = 'block';
+
+            playMantra(mantra); // Optional: Plays the mantra
+        });
+    </script>
+</body>
+</html>

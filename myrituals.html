@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width", initial-scale="1.0">
+    <title>Pooja Rituals - SoulBuddy</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #FFD700;
+            --background-color: #000000;
+            --secondary-bg: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #FFD700;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            color: var(--text-color);
+            min-height: 100vh;
+            background: transparent;
+        }
+
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+        .content-wrapper {
+            margin-top: 120px;
+            padding: 2rem;
+        }
+
+        .ritual-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 2.5rem;
+            border: 1px solid var(--accent-color);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .section-title {
+            color: var(--accent-color);
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            color: var(--accent-color);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--accent-color);
+            color: var(--text-color);
+            padding: 0.8rem;
+            border-radius: 8px;
+        }
+
+        .form-control:focus {
+            background: rgba(0, 0, 0, 0.7);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+            color: var(--text-color);
+        }
+
+        .btn-submit {
+            background: transparent;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            width: 200px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-color);
+            color: black;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--accent-color);
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ritual-result {
+            display: none;
+            margin-top: 2rem;
+            padding: 2rem;
+            border: 1px solid var(--accent-color);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .ritual-result h3 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Add to existing styles */
+        .ritual-content {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .ritual-title {
+            color: var(--accent-color);
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .timeline .step {
+            border-left: 2px solid var(--accent-color);
+            padding-left: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline .step::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-color);
+        }
+
+        .ritual-content h3 {
+            color: var(--accent-color);
+            margin: 1.5rem 0;
+            font-size: 1.4rem;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+        }
+
+        .ritual-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .ritual-content li {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--accent-color);
+        }
+
+        .ritual-content li::before {
+            content: '✧';
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-navbar">
+        <div class="container-fluid px-4">
+            <div class="brand-text">SoulBuddy</div>
+            
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+    
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> 
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="form.html">
+                            <i class="fas fa-star"></i> 
+                            <span>Know Me</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="myhoroscope.html">
+                            <i class="fas fa-chart-pie"></i> 
+                            <span>My Horoscope</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="mantra.html">
+                            <i class="fas fa-om"></i> 
+                            <span>Mantra</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dosha.html">
+                            <i class="fas fa-balance-scale"></i> 
+                            <span>Dosha</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="myrituals.html">
+                            <i class="fas fa-pray"></i> 
+                            <span>Pooja Rituals</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="blog.html">
+                            <i class="fas fa-blog"></i> 
+                            <span>Blog</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <link href="navbar.css" rel="stylesheet">
+    <!-- Add navbar from index.html -->
+
+
+    <!-- Video Background -->
+    <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="myhoroscopevideo.mp4" type="video/mp4">
+        </video>
+    </div>
+    <div class="overlay"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay">
+        <div class="loader"></div>
+        <div class="loading-text">Generating Your Ritual Recommendations...</div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="ritual-container">
+            <h2 class="section-title">✧ Personalized Pooja Rituals ✧</h2>
+            
+            <form id="ritualForm">
+                <div class="form-group">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" class="form-control" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" name="dob" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Select Your Zodiac Sign</label>
+                    <select class="form-control" name="zodiac" required>
+                        <option value="">--Select--</option>
+                        <option value="aries">Aries</option>
+                        <option value="taurus">Taurus</option>
+                        <option value="gemini">Gemini</option>
+                        <option value="cancer">Cancer</option>
+                        <option value="leo">Leo</option>
+                        <option value="virgo">Virgo</option>
+                        <option value="libra">Libra</option>
+                        <option value="scorpio">Scorpio</option>
+                        <option value="sagittarius">Sagittarius</option>
+                        <option value="capricorn">Capricorn</option>
+                        <option value="aquarius">Aquarius</option>
+                        <option value="pisces">Pisces</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">Generate Rituals</button>
+            </form>
+
+            <div class="ritual-result" id="ritualResult"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent`;
+        const GEMINI_API_KEY = ``;
+        
+        // Cache for storing generated rituals
+        const ritualCache = {};
+
+        // Update the formatRitualHTML function
+        function formatRitualHTML(name, dob, zodiac, content) {
+            try {
+                const ritualData = typeof content === 'string' ? JSON.parse(content) : content;
+                
+                // Helper function to safely extract text content
+                const getTextContent = (obj) => {
+                    if (typeof obj === 'string') return obj;
+                    if (obj && obj.text) return obj.text;
+                    if (obj && typeof obj === 'object') return JSON.stringify(obj);
+                    return 'Not specified';
+                };
+
+                return `
+                    <div class="ritual-content">
+                        <h2 class="ritual-title">✧ Personalized Pooja Ritual for ${name} ✧</h2>
+                        
+                        <div class="birth-details">
+                            <h3><i class="fas fa-user-circle"></i> Birth Details</h3>
+                            <ul>
+                                <li><strong>Name:</strong> ${name}</li>
+                                <li><strong>Birth Date:</strong> ${dob}</li>
+                                <li><strong>Zodiac Sign:</strong> ${zodiac}</li>
+                            </ul>
+                        </div>
+
+                        <div class="deity-section">
+                            <h3><i class="fas fa-om"></i> Main Deity</h3>
+                            <p class="deity-text">${getTextContent(ritualData.mainDeity)}</p>
+                        </div>
+
+                        <div class="steps-section">
+                            <h3><i class="fas fa-list-ol"></i> Ritual Steps</h3>
+                            <div class="timeline">
+                                ${getTextContent(ritualData.steps)}
+                            </div>
+                        </div>
+
+                        <div class="time-section">
+                            <h3><i class="fas fa-clock"></i> Recommended Time</h3>
+                            <div class="time-text">${getTextContent(ritualData.time)}</div>
+                        </div>
+
+                        <div class="items-section">
+                            <h3><i class="fas fa-scroll"></i> Required Items</h3>
+                            <div class="items-text">${getTextContent(ritualData.items)}</div>
+                        </div>
+
+                        <div class="benefits-section">
+                            <h3><i class="fas fa-star"></i> Expected Benefits</h3>
+                            <div class="benefits-text">${getTextContent(ritualData.benefits)}</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error formatting ritual data:', error);
+                return '<div class="error">Error formatting ritual data. Please try again.</div>';
+            }
+        }
+
+        // Update form submission handler
+        document.getElementById('ritualForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const loadingOverlay = document.querySelector('.loading-overlay');
+            const resultDiv = document.getElementById('ritualResult');
+            
+            try {
+                const formData = {
+                    name: this.name.value,
+                    dob: this.dob.value,
+                    zodiac: this.zodiac.value
+                };
+
+                const cacheKey = `${formData.name}-${formData.dob}-${formData.zodiac}`;
+
+                if (ritualCache[cacheKey]) {
+                    resultDiv.innerHTML = ritualCache[cacheKey];
+                    resultDiv.style.display = 'block';
+                    return;
+                }
+
+                loadingOverlay.style.display = 'flex';
+
+                const prompt = `Generate a pooja ritual recommendation for ${formData.name} (${formData.zodiac}) born on ${formData.dob}.
+
+                Respond with ONLY this exact JSON structure:
+                {
+                    "mainDeity": "String describing the main deity to worship",
+                    "steps": "<div class='step'><h4>1. Preparation</h4><ul><li>Step details here</li></ul></div><div class='step'><h4>2. Main Ritual</h4><ul><li>More steps here</li></ul></div>",
+                    "time": "<ul><li>Morning: Sunrise (recommended)</li><li>Evening: Sunset (alternative)</li></ul>",
+                    "items": "<ul><li>Item 1 with description</li><li>Item 2 with description</li></ul>",
+                    "benefits": "<ul><li>Benefit 1 description</li><li>Benefit 2 description</li></ul>"
+                }
+
+                IMPORTANT:
+                - All values must be complete HTML strings
+                - No markdown
+                - No nested objects
+                - No arrays
+                - Only plain strings with HTML markup`;
+
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                const ritualData = JSON.parse(data.candidates[0].content.parts[0].text);
+                
+                const formattedHTML = formatRitualHTML(
+                    formData.name,
+                    formData.dob,
+                    formData.zodiac,
+                    ritualData
+                );
+
+                ritualCache[cacheKey] = formattedHTML;
+                resultDiv.innerHTML = formattedHTML;
+                resultDiv.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating ritual recommendations. Please try again.');
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
